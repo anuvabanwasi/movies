@@ -2,49 +2,51 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Noovie - An OMDB Movie Finder</title>
+    <title>OMDB Movie Finder</title>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" type="text/css" href="./css/movies.css"> 
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans">
+    <link rel="stylesheet" type="text/css" href="./css/movies.css">
     <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <!-- Thanks to OMDB(omdbapi.com) for publishing an Movies database API that is accessed in this app below-->
   </head>
 
   <body>
-  <div class="one">
-	<h1>Welcome to Noovie</h1>
-</div>
-<br>
-    <div id="search">
-      Movie Title
-      <input type="text" placeholder="Search Movie Titles" id="searchBox" value="" maxlength="50" size="20"
-      />
-      
-      Records Per Page
-      <select id="combobox">
-        <option value="10">10</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-      </select>
-      
-      <input type="button" class="searchBtn" id="searchBtn" type="submit"value="Search">
+    <div class="block">
+      <h1 class="h1-res">Welcome to Noovie</h1>
+        <div class="row">
+          
+          <div class="col-55">
+            <input type="text" placeholder="Search Movie Titles" id="searchBox">
+          </div>
 
-    </div>
+          <div class="col-9">
+            <select id="combobox">
+              <option value="10">10</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
 
-    <table border="0" cellspacing="5" cellpadding="5">
+          <div class="col-20">
+            <input type="button" class="searchBtn" id="searchBtn" type="submit"value="Search">
+          </div>
+        </div>
+      
+
+    <table border="0" cellspacing="5" cellpadding="5" style="width:40%;font: 12px/1 'Open Sans', sans-serif;">
             <tbody><tr>
-                <td>MinYear</td>
-                <td><input type="text" id="min" name="min" maxlength="8" size="10" style="height:18px;">
-                </td>
+                <td>Minimum Year:</td>
+                <td><input type="text" id="min" name="min"></td>
             </tr>
             <tr>
-                <td>Max Year</td>
-                <td><input type="text" id="max" name="max"maxlength="8" size="10" style="height:18px;">
-                </td>
+                <td>Maximum Year:</td>
+                <td><input type="text" id="max" name="max"></td>
             </tr>
         </tbody>
     </table>
 
-    <table id="example" class="display" style="width:100%">
+    <table id="example" class="display" style="width:100%;font: 12px/1 'Open Sans', sans-serif;">
         <thead>
             <tr>
                 <th>Title</th>
@@ -56,30 +58,24 @@
     <div id="pagination" class="pagination"></div>
 
     <!-- The Modal -->
-    <div id="detailsModal" class="modal">
 
-      <!-- Modal content -->
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <table id="detailsTable" class="table table-borderless table-striped table-earning">
-        <thead>
-          <th>Poster</th>
-          <th>Released</th>
-          <th>Runtime</th>
-          <th>Genre</th>
-          <th>Director</th>
-          <th>Plot</th>
-        </thead>
+    <div class="modal-overlay" id="modal-overlay"></div>
+
+    <div class="modal" id="modal">
+    <button class="close-button" id="close-button">X</button>
+    <div class="modal-guts">
+      <table id="detailsTable" style="width:80%;font: 12px/1 'Open Sans', sans-serif; border:1px solid gray" >
         <tbody>
-         <tr id="movie"></tr>
+          <tr id="movie"></tr>
         </tbody>
         </table>
-      </div>
     </div>
-      <!-- HTML & CSS parts of the application end here -->
-      <!-- Below are the Javascript functions that power this web application. 
-        Thank you! to OMDB(omdbapi.com) for the access to the Movies API/database -->
-      <script>
+  </div>
+  <!-- <button id="open-button" class="open-button">Open Button</button> -->
+  <div class="loader" style="display: none;"></div>
+  <!-- End of HTML and CSS Code-->
+  <!-- Start of Javascript functions tha powers the movies web app-->
+ <script>
       $(function(){
          var table = $('#example').DataTable({
           paging:false,
@@ -91,20 +87,7 @@
         $('#min, #max').keyup( function() {
           table.draw();
         } );
-
-      })
-
-      var modal = document.getElementById("detailsModal");
-      var span = document.getElementsByClassName("close")[0];
-
-      span.onclick = function() {
-        modal.style.display = "none";
-      }
-
-      window.onclick = function(event) {
-        if (event.target == modal)
-          modal.style.display = "none";
-      }
+      });
 
       // Define function to fetch api
       async function fetchUrl(url) {
@@ -119,17 +102,17 @@
             return content;
         }
       }
-
+      
       async function displayContent(page_num, search_str, records_per_page) {
 
         var uri_list = [];
         for(var i = 1; i <= Math.ceil(records_per_page/10); i++)
           uri_list.push(fetchUrl('http://www.omdbapi.com/?type=movie&s=' + search_str + '&page=' + ((page_num - 1) * (records_per_page/10 ) + i) + '&apikey=f234431f'));
-
+        
         let values = await Promise.all(uri_list);
 
         var finalObj = [];
-        for(var i = 0; i < values.length; i++) {
+        for(var i = 0; i < values.length; i++){
           var json = JSON.parse(values[i]).Search;
           finalObj = finalObj.concat(json);
         }
@@ -152,55 +135,53 @@
           }
         }
 
-        var total_records = JSON.parse(values[0]).totalResults;
-        document.getElementById("pagination").innerHTML = "";
-
-        for(var i = 1; i <= Math.ceil(total_records/records_per_page);i++)
-          addPageNo("a", i, search_str, records_per_page);
-
-        document.getElementById(page_num).setAttribute("class","active")
-
         $('#example tbody').on( 'click', 'tr', function () {
           var rowData = $("#example").DataTable().row( this ).data();
           displayDetails(rowData[2]);
+          modal.style.display = 'block';
+          modalOverlay.style.display = 'block';
         });
+
+        var total_records = JSON.parse(values[0]).totalResults;
+        pagination(total_records, search_str, records_per_page, page_num);
       };
 
       async function displayDetails(id) {
 
+        document.getElementById("movie").innerHTML="Loading...";
+
+        var spinner = document.querySelector('.loader');
+        spinner.classList.add('spin');
+
         let description = fetchUrl('http://www.omdbapi.com/?i=' + id + '&apikey=f234431f');
         let values = await Promise.all([description]);
 
+        spinner.classList.remove('spin');
+        
         var detailsObj = JSON.parse(values);
-        modal.style.display = "block";
+
         loadTableData(detailsObj);
 
       };
+ 
+      function pagination(total_records, search_str, records_per_page, page_num){
+        document.getElementById("pagination").innerHTML = "";
 
-
-      function add(type, page_num, search_str, records_per_page) {
-        var element = document.createElement("button");
-        element.type = type;
-        element.value = page_num;
-        element.name = page_num;
-        element.innerHTML = page_num;
-        element.onclick = function() {
-          displayContent(page_num, search_str, records_per_page);
-        };
-
-        var pagination = document.getElementById("pagination");
-        pagination.appendChild(element);
+        for(var i = 1; i <= Math.ceil(total_records/records_per_page);i++)
+          addPage("a", i, search_str, records_per_page);
+        
+        document.getElementById(page_num).setAttribute("class","active")
       }
 
-      function addPageNo(type, page_num, search_str, records_per_page) {
+      function addPage(type, page_num, search_str, records_per_page) {
         var element = document.createElement("a");
         element.id = page_num;
         element.value = page_num;
         element.name = page_num;
         element.innerHTML = page_num;
         element.onclick = function() {
-        element.setAttribute('class', 'active');
-        displayContent(page_num, search_str, records_per_page);
+          element.setAttribute('class', 'active');
+          displayContent(page_num, search_str, records_per_page);
         };
 
         var pagination = document.getElementById("pagination");
@@ -212,32 +193,30 @@
       document.getElementById("movie").innerHTML="";
 
       var row = document.getElementById("movie");
-
       var x = row.insertCell(0);
+
       if(rowData.Poster != "N/A")
         x.innerHTML = '<img src='+rowData.Poster+'></img>';
       else
         x.innerHTML = 'N/A';
 
       var x = row.insertCell(1);
-      x.innerHTML = rowData.Released;
+      var ratings = rowData.Ratings;
+      var ratingsDetail='';
+      
+      for(var i = 0; i < ratings.length; i++) {
+        var source = typeof ratings[i].Source != undefined? ratings[i].Source:'N/A';
+        var value = typeof ratings[i].Value != undefined? ratings[i].Value:'N/A';
+        ratingsDetail = ratingsDetail + source  + " " + value + "<br/><br/>" ;
+      }
 
-      var x = row.insertCell(2);
-      x.innerHTML = rowData.Runtime;
-
-      var x = row.insertCell(3);
-      x.innerHTML = rowData.Genre;
-
-      var x = row.insertCell(4);
-      x.innerHTML = rowData.Director;
-
-      var x = row.insertCell(5);
-      x.innerHTML = rowData.Plot;
+      x.innerHTML = "<b>Title: </b>" + (rowData.Title === null? "N/A" : rowData.Title) + "<br/><br/>" + "<b>Runtime:</b>" + (typeof rowData.Runtime != undefined? rowData.Runtime : 'N/A') + "<br/><br/>" + "<b>Genre:</b>" + (typeof rowData.Genre != undefined? rowData.Genre : 'N/A') + "<br/><br/>" + "<b>Director:</b>"+ (typeof rowData.Director != undefined? rowData.Director : 'N/A') + "<br/><br/>" + "<b>Plot:</b>" + (typeof rowData.Plot != undefined? rowData.Plot : 'N/A') + "<br/><br/>" + "<b>IMDB Rating:</b>" + (typeof rowData.imdbRating != undefined? rowData.imdbRating : 'N/A') + "<br/><br/>" + "<b>Other Ratings:</b>" + ratingsDetail;
 
     }
 
     $.fn.dataTable.ext.search.push(
     function( settings, data, dataIndex ) {
+
         var min = parseInt( $('#min').val(), 10 );
         var max = parseInt( $('#max').val(), 10 );
         var year = parseFloat( data[1] ) || 0;
@@ -253,6 +232,22 @@
     }
     );
 
+    var modal = document.querySelector("#modal");
+    var modalOverlay = document.querySelector("#modal-overlay");
+    var closeButton = document.querySelector("#close-button");
+    var openButton = document.querySelector("#open-button");
+
+    closeButton.addEventListener("click", function() {
+      modal.style.display = 'none';
+      modalOverlay.style.display = 'none';
+    });
+
+    /*openButton.addEventListener("click", function() {
+      console.log("toggling 2");
+      modal.classList.toggle("closed");
+      modalOverlay.classList.toggle("closed");
+    });*/
+
     $('#searchBtn').click(function () {
      var search_str = $("#searchBox").val();
      var element = document.getElementById("combobox");
@@ -263,7 +258,6 @@
       console.log(e)
      );
    });
-
     </script>
   </body>
 </html>
