@@ -5,8 +5,12 @@
     <title>OMDB Movie Finder</title>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
     <style>
-      body {font-family: Arial, Helvetica, sans-serif;}
-
+      body {
+        background-image: url('background.jpeg');
+        font-family: Arial, Helvetica, sans-serif;
+      
+      }
+      
       /* The Modal (background) */
       .modal {
         display: none; /* Hidden by default */
@@ -45,8 +49,8 @@
         text-decoration: none;
         cursor: pointer;
       }
-
-      .pagination {
+      
+            .pagination {
         display: inline-block;
       }
 
@@ -63,32 +67,104 @@
       }
 
       .pagination a:hover:not(.active) {background-color: #ddd;}
-  </style>
+      
+    /* === BASE HEADING === */ 
+
+	h1 {
+	    position: relative;
+	    padding: 0;
+	    margin: 0;
+	    font-family: "Raleway", sans-serif;
+	    font-weight: 300;
+	    font-size: 40px;
+	    color: #080808;
+	    -webkit-transition: all 0.4s ease 0s;
+	    -o-transition: all 0.4s ease 0s;
+	    transition: all 0.4s ease 0s;
+	  }
+  
+	  h1 span {
+	    display: block;
+	    font-size: 0.5em;
+	    line-height: 1.3;
+	  }
+	  h1 em {
+	    font-style: normal;
+	    font-weight: 600;
+	  }
+	  
+	  /* === HEADING STYLE #1 === */
+	  .one h1 {
+	    text-align: center;
+	    text-transform: uppercase;
+	    padding-bottom: 5px;
+	  }
+	  input,
+	    label {
+	    margin: .4rem 0;
+	    line-height: 2em;
+	    }
+
+		/*
+		table {
+		    border-collapse: collapse;
+		    width: 100%;
+		
+		
+		th, td {
+		  text-align: left;
+		  padding: 8px;
+		}
+		}
+		tr:nth-child(even) {background-color: #f2f2f2;}
+		*/
+		.searchBtn {
+		  background-color: #4CAF50;
+		  border: none;
+		  color: white;
+		  padding: 5px 15px;
+		  text-align: center;
+		  text-decoration: none;
+		  display: inline-block;
+		  font-size: 16px;
+		  margin: 4px 2px;
+		  cursor: pointer;
+		}
+	</style>
   </head>
 
   <body>
+  <div class="one">
+	<h1>Welcome to the OMDB Movies App</h1>
+</div>
+<br>
     <div id="search">
-      Search Movie Titles
-      <input type="text" placeholder="Search Movie Titles" id="searchBox" value="Guardian"/>
+      &nbsp;&nbsp; Movie Title
+      <input type="text" placeholder="Search Movie Titles" id="searchBox" value="" maxlength="50" size="20"
+      />
+      &nbsp;&nbsp;
       Records Per Page
       <select id="combobox">
         <option value="10">10</option>
         <option value="50">50</option>
         <option value="100">100</option>
       </select>
-
-      <button id="searchBtn" type="submit">Search</button>
+      &nbsp;&nbsp;
+     <!-- <button class="searchBtn" id="searchBtn" type="submit">Search</button>-->
+      <input type="button" class="searchBtn" id="searchBtn" type="submit"value="Search">
 
     </div>
 
     <table border="0" cellspacing="5" cellpadding="5">
             <tbody><tr>
-                <td>Minimum Year:</td>
-                <td><input type="text" id="min" name="min"></td>
+                <td>MinYear</td>
+                <td><input type="text" id="min" name="min" maxlength="8" size="10" style="height:18px;">
+                </td>
             </tr>
             <tr>
-                <td>Maximum Year:</td>
-                <td><input type="text" id="max" name="max"></td>
+                <td>Max Year</td>
+                <td><input type="text" id="max" name="max"maxlength="8" size="10" style="height:18px;">
+                </td>
             </tr>
         </tbody>
     </table>
@@ -124,13 +200,13 @@
           <th>Plot</th>
         </thead>
         <tbody>
-          <tr id="movie"></tr>
+         <tr id="movie"></tr>
         </tbody>
         </table>
       </div>
     </div>
-
-
+    
+   
       <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.js"></script>
       <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
       <script>
@@ -334,3 +410,4 @@
     </script>
   </body>
 </html>
+   
