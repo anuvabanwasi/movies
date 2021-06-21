@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>OMDB Movie Finder</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+    <style>
+      body {font-family: Arial, Helvetica, sans-serif;}
+
+      /* The Modal (background) */
+      .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+      }
+
+      /* Modal Content */
+      .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+      }
+
+      /* The Close Button */
+      .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+      }
+  </style>
+  </head>
+
+  <body>
+    <div id="search">
+      Search Movie Titles
+      <input type="text" placeholder="Search Movie Titles" id="searchBox"/>
+      Records Per Page
+      <select id="combobox">
+        <option value="10">10</option>
+        <option value="20">50</option>
+        <option value="30">100</option>
+      </select>
+
+      <button id="searchBtn" type="submit">Search</button>
+
+    </div>
+
+    <table border="0" cellspacing="5" cellpadding="5">
+            <tbody><tr>
+                <td>Minimum Year:</td>
+                <td><input type="text" id="min" name="min"></td>
+            </tr>
+            <tr>
+                <td>Maximum Year:</td>
+                <td><input type="text" id="max" name="max"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table id="example" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Year</th>
+                <th>imdbID</th>
+            </tr>
+        </thead>
+    </table>
+
+    <div id="pagination" class="pagination">
+
+    </div>
+
+    <!-- Trigger/Open The Modal -->
+
+    <!-- The Modal -->
+    <div id="detailsModal" class="modal">
+
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <table id="detailsTable" class="table table-borderless table-striped table-earning">
+        <thead>
+          <th>Poster</th>
+          <th>Genre</th>
+          <th>Released</th>
+          <th>Director</th>
+          <th>Plot</th>
+        </thead>
+        <tbody>
+          <tr id="test"></tr>
+        </tbody>
+        </table>
+      </div>
+    </div>
+
+
+      <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+      <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+      <script>
+      $(function(){
+         var table = $('#example').DataTable({
+          paging:false,
+          info : false
+        });
+
+        // Event listener to the two range filtering inputs to redraw on input
+        $('#min, #max').keyup( function() {
+          table.draw();
+        } );
+
+      })
+
+      var modal = document.getElementById("detailsModal");
+
+      var span = document.getElementsByClassName("close")[0];
+
+      span.onclick = function() {
+        modal.style.display = "none";
+      }
+
+      window.onclick = function(event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      }
+
+      // Define function to fetch api
+      async function fetchUrl(url) {
+
+        let response = await fetch(url);
+
+        let content;
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        } else {
+            content = await response.text();
+            return content;
+        }
+      }
+
+      async function displayContent(page_num, search_str, records_per_page) {
+
+        var uri_list = [];
+        for(var i = 1; i <= Math.ceil(records_per_page/10); i++){
+          uri_list.push(fetchUrl('http://www.omdbapi.com/?type=movie&s=' + search_str + '&page=' + (page_num * records_per_page/10) + '&apikey=f234431f'));
+        }
+
+        let values = await Promise.all(uri_list);
+
+        var total_records = JSON.parse(values[0]).totalResults;
+
+        var finalObj = [];
+        for(var i = 0; i < values.length; i++){
+          var json = JSON.parse(values[i]).Search;
+          finalObj = finalObj.concat(json);
+        }
+
+        $("#example").DataTable().clear();
+        $('#example').DataTable().page.len(records_per_page).draw();
+
+        var length = Object.keys(finalObj).length;
+
+        for(var i = 0; i < length; i++) {
+          var movie = finalObj[i];
+
+          if (typeof movie !== 'undefined'){
+            $('#example').dataTable().fnAddData( [
+              movie.Title,
+              movie.Year,
+              movie.imdbID
+            ]);
+          }
+        }
+
+        document.getElementById("pagination").innerHTML = "";
+
+        for(var i = 1; i <= Math.ceil(total_records/records_per_page);i++){
+          add("button", i, search_str, records_per_page);
+        }
+
+        $('#example tbody').on( 'click', 'tr', function () {
+          var rowData = $("#example").DataTable().row( this ).data();
+
+          displayDetails(rowData[2]);
+
+        });
+      };
+
+      async function displayDetails(id) {
+
+        let description = fetchUrl('http://www.omdbapi.com/?i=' + id + '&apikey=f234431f');
+        //let poster = fetchUrl('http://img.omdbapi.com/?i=' + id + '&apikey=f234431f');
+
+        let values = await Promise.all([description]);
+
+        var detailsObj = JSON.parse(values);
+
+        modal.style.display = "block";
+
+        loadTableData(detailsObj);
+
+      };
+
+
+      function add(type, page_num, search_str, records_per_page) {
+        var element = document.createElement("button");
+        element.type = type;
+        element.value = page_num;
+        element.name = page_num;
+        element.innerHTML = page_num;
+        element.onclick = function() {
+          displayContent(page_num, search_str, records_per_page);
+        };
+
+        var foo = document.getElementById("pagination");
+        foo.appendChild(element);
+      }
+
+     function loadTableData(rowData) {
+
+      document.getElementById("test").innerHTML="";
+
+      var row = document.getElementById("test");
+
+      var x = row.insertCell(0);
+      if(rowData.Poster != "N/A")
+        x.innerHTML = '<img src='+rowData.Poster+'></img>';
+      else
+      x.innerHTML = 'N/A';
+
+      var x = row.insertCell(1);
+      x.innerHTML = rowData.Genre;
+
+      var x = row.insertCell(2);
+      x.innerHTML = rowData.Released;
+
+      var x = row.insertCell(3);
+      x.innerHTML = rowData.Director;
+
+      var x = row.insertCell(4);
+      x.innerHTML = rowData.Plot;
+
+    }
+
+    $.fn.dataTable.ext.search.push(
+    function( settings, data, dataIndex ) {
+        var min = parseInt( $('#min').val(), 10 );
+        var max = parseInt( $('#max').val(), 10 );
+        var age = parseFloat( data[1] ) || 0;
+
+        if ( ( isNaN( min ) && isNaN( max ) ) ||
+             ( isNaN( min ) && age <= max ) ||
+             ( min <= age   && isNaN( max ) ) ||
+             ( min <= age   && age <= max ) )
+        {
+            return true;
+        }
+        return false;
+    }
+    );
+
+
+    $('#searchBtn').click(function () {
+     var search_str = $("#searchBox").val();
+     var element = document.getElementById("combobox");
+     var records_per_page = element.options[element.selectedIndex].value;
+
+     displayContent(1, search_str, records_per_page)
+      .catch((e) =>
+      console.log(e)
+     );
+   });
+
+    </script>
+  </body>
+</html>
