@@ -34,13 +34,11 @@
         </div>
       
 
-    <table border="0" cellspacing="5" cellpadding="5" style="width:40%;font: 12px/1 'Open Sans', sans-serif;">
+    <table id="year" border="0" cellspacing="5" cellpadding="5" style="width:55%;font: 12px/1 'Open Sans', sans-serif;">
             <tbody><tr>
-                <td>Minimum Year:</td>
+                <td>From Year</td>
                 <td><input type="text" id="min" name="min"></td>
-            </tr>
-            <tr>
-                <td>Maximum Year:</td>
+                <td>To Year</td>
                 <td><input type="text" id="max" name="max"></td>
             </tr>
         </tbody>
@@ -51,6 +49,7 @@
             <tr>
                 <th>Title</th>
                 <th>Year</th>
+                <th>Thumbnail</th>
             </tr>
         </thead>
     </table>
@@ -76,6 +75,15 @@
   <!-- End of HTML and CSS Code-->
   <!-- Start of Javascript functions that powers the movies web app-->
  <script>
+
+      var input = document.getElementById("searchBox");
+      input.addEventListener("keyup", function(event) {
+          if (event.keyCode === 13) {
+              event.preventDefault();
+              document.getElementById("searchBtn").click();
+          }
+      });
+
       $(function(){
          var table = $('#example').DataTable({
           paging:false,
@@ -127,9 +135,14 @@
           var movie = finalObj[i];
 
           if (typeof movie !== 'undefined'){
+            
+            movie.Poster1 = ( movie.Poster != "N/A") ? "<img src=" + movie.Poster + " style='width:50px'>" : "NA";
+
             $('#example').dataTable().fnAddData( [
               movie.Title,
               movie.Year,
+              movie.Poster1,
+              movie.Poster,
               movie.imdbID
             ]);
           }
@@ -137,7 +150,7 @@
 
         $('#example tbody').on( 'click', 'tr', function () {
           var rowData = $("#example").DataTable().row( this ).data();
-          displayDetails(rowData[2]);
+          displayDetails(rowData[4]);
           modal.style.display = 'block';
           modalOverlay.style.display = 'block';
         });
@@ -180,8 +193,8 @@
         element.name = page_num;
         element.innerHTML = page_num;
         element.onclick = function() {
-          element.setAttribute('class', 'active');
-          displayContent(page_num, search_str, records_per_page);
+        element.setAttribute('class', 'active');
+        displayContent(page_num, search_str, records_per_page);
         };
 
         var pagination = document.getElementById("pagination");
